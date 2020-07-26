@@ -6,7 +6,9 @@ The publish/subscription utility by Promise in Deno.
 
 ```typescript
 const p = new Promisub<number>();
-p.publish(...events);
+
+// Publish events
+p.publish(event1, event2, ...);
 
 // Wait an event
 await p.once();
