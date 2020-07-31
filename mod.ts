@@ -44,6 +44,20 @@ export class Promisub<T> implements AsyncIterable<T> {
   }
 
   /**
+   * `merge` merges two `Promisub`s.
+   *
+   * @template U
+   * @param {Promisub<U>} other
+   * @returns {(Promisub<T | U>)}
+   * @memberof Promisub
+   */
+  merge<U>(other: Promisub<U>): Promisub<T | U> {
+    const obj = new Promisub<T | U>();
+    obj.events = [...this.events, ...other.events];
+    return obj;
+  }
+
+  /**
    * `once` takes an event.
    *
    * @returns {Promise<T>}

@@ -1,6 +1,7 @@
 import {
   assertEquals,
   assertThrowsAsync,
+  AssertionError,
 } from "https://deno.land/std@0.62.0/testing/asserts.ts";
 
 import { Promisub } from "./mod.ts";
@@ -24,10 +25,10 @@ Deno.test("with iterator", async () => {
   const p = new Promisub<number>();
   p.publish(...events);
   for await (const e of p) {
-    assertEquals(e, events[0]);
-    events.shift();
-    if (events.length == 0) break;
+    assertEquals(e, events.shift());
+    if (events.length == 0) return;
   }
+  throw new AssertionError("leaked some events");
 });
 
 Deno.test("close", async () => {
@@ -39,4 +40,25 @@ Deno.test("close", async () => {
   await assertThrowsAsync(async () => {
     await p.once();
   });
+});
+
+Deno.test("merge", async () => {
+  const eventsA = ["uno", "dos", "tres"];
+  const a = new Promisub<string>();
+  a.publish(...eventsA);
+
+  const eventsB = [3, 2, 1];
+  const b = new Promisub<number>();
+  b.publish(...eventsB);
+
+  const eventsC = [1423, "5656"];
+  const merged = a.merge(b);
+  merged.publish(...eventsC);
+
+  const expectedEvents = [...eventsA, ...eventsB, ...eventsC];
+  for await (const e of merged) {
+    assertEquals(e, expectedEvents.shift());
+    if (expectedEvents.length == 0) return;
+  }
+  throw new AssertionError("leaked some events");
 });
